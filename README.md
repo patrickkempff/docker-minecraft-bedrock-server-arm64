@@ -1,25 +1,41 @@
 # Please read
 
-⚠️ This docker container is based on https://github.com/itzg/docker-minecraft-bedrock-server with some changes to let it run on arm64 hardware.
-This container uses [box64](https://github.com/ptitSeb/box64) to "translate" amd64 instructions to arm64. This is needed as Mojang does not provide arm compatible images at the time of this writing.
+⚠️ A docker container is based on https://github.com/itzg/docker-minecraft-bedrock-server with some small changes to let it run on arm64 hardware. It uses [box64](https://github.com/ptitSeb/box64) to "translate" amd64 instructions to arm64. This is needed as Mojang does not provide arm compatible images at the time of this writing. 
+
+**Please make sure your host OS is arm64 compatible.** I run this on Raspberry PI OS 64bit (Raspberry Pi 4)  without any big problems. 
 
 ## Quickstart
 
-The following starts a Bedrock Dedicated Server running a default version and
-exposing the default UDP port: 
-
-Clone this repository by running:
+Clone the repository:
 ```bash
 git clone https://github.com/patrickkempff/docker-minecraft-bedrock-server-arm64.git
-cd docker-minecraft-bedrock-server-arm64
-docker build --tag minecraft .
 ```
 
-```bash
-docker run -d -it -e EULA=TRUE -p 19132:19132/udp minecraft
-```
+I run this server in conjuntion with docker compose.
 
-> **NOTE**: if you plan on running a server for a longer amount of time it is highly recommended using a management layer such as [Docker Compose](#deploying-with-docker-compose) or [Kubernetes](#deploying-with-kubernetes) to allow for incremental reconfiguration and image upgrades.
+```yml
+version: '3.4'
+
+services:
+  minecraft:
+    container_name: minecraft-bedrock-server
+    # The is the path to the directory where the Dockerfile is located.
+    build: ./docker-minecraft-bedrock-server-arm64
+    environment:
+      EULA: "TRUE"
+      GAMEMODE: survival
+      DIFFICULTY: normal
+      BOX64_LOG: "INFO"
+    ports:
+      - 19132:19132/udp
+    volumes:
+      - bds:/data
+    stdin_open: true
+    tty: true
+
+volumes:
+  bds: {}
+```
 
 ## Upgrading to the latest Bedrock server version
 
@@ -80,47 +96,19 @@ The following environment variables will set the equivalent property in `server.
 - `PLAYER_MOVEMENT_DURATION_THRESHOLD_IN_MS`
 - `CORRECT_PLAYER_MOVEMENT`
 
-For example, to configure a flat, creative server instead of the default use:
+For example, to configure a flat, creative server instead of the default use in your docker-compose.yml:
 
-```bash
-docker run -d -it --name bds-flat-creative \
-  -e EULA=TRUE -e LEVEL_TYPE=flat -e GAMEMODE=creative \
-  -p 19132:19132/udp itzg/minecraft-bedrock-server
+```yml
+environment:
+    EULA: "TRUE"
+    LEVEL_TYPE: flat
+    GAMEMODE: creative
 ```
 
 ## Exposed Ports
 
 - **UDP** 19132 : the Bedrock server port. 
   **NOTE** that you must append `/udp` when exposing the port, such as `-p 19132:19132/udp`
-  
-## Volumes
-
-- `/data` : the location where the downloaded server is expanded and ran. Also contains the
-  configuration properties file `server.properties`
-
-You can create a `named volume` and use it as:
-
-```shell
-docker volume create mc-volume
-docker run -d -it --name mc-server -e EULA=TRUE -p 19132:19132/udp -v mc-volume:/data itzg/minecraft-bedrock-server
-```
-
-If you're using a named volume and want the bedrock process to run as a non-root user then you will need to pre-create the volume and `chown` it to the desired user.
-
-For example, if you want the bedrock server to run with user ID 1000 and group ID 1000, then create and chown the volume named "bedrock" using:
-
-```shell script
-docker run --rm -v bedrock:/data alpine chown 1000:1000 /data
-```
-
-If using `docker run` then simply reference that volume "bedrock" in the `-v` argument. If using a compose file, declare the volume as an external using this type of declaration:
-
-```yaml
-volumes:
-  bedrock:
-    external:
-      name: bedrock
-```
 
 ## Connecting
 
