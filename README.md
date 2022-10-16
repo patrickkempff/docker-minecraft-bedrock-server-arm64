@@ -1,16 +1,22 @@
-[![Docker Pulls](https://img.shields.io/docker/pulls/itzg/minecraft-bedrock-server.svg)](https://hub.docker.com/r/itzg/minecraft-bedrock-server/)
-[![GitHub Issues](https://img.shields.io/github/issues-raw/itzg/docker-minecraft-bedrock-server.svg)](https://github.com/itzg/docker-minecraft-bedrock-server/issues)
-[![Build](https://github.com/itzg/docker-minecraft-bedrock-server/workflows/Build/badge.svg)](https://github.com/itzg/docker-minecraft-bedrock-server/actions?query=workflow%3ABuild)
-[![Discord](https://img.shields.io/discord/660567679458869252?label=Discord&logo=discord)](https://discord.gg/ScbTrAw)
-[![](https://img.shields.io/badge/Donate-Buy%20me%20a%20coffee-orange.svg)](https://www.buymeacoffee.com/itzg)
+# Please read
+
+⚠️ This docker container is based on https://github.com/itzg/docker-minecraft-bedrock-server with some changes to let it run on arm64 hardware.
+This container uses [box64](https://github.com/ptitSeb/box64) to "translate" amd64 instructions to arm64. This is needed as Mojang does not provide arm compatible images at the time of this writing.
 
 ## Quickstart
 
 The following starts a Bedrock Dedicated Server running a default version and
 exposing the default UDP port: 
 
+Clone this repository by running:
 ```bash
-docker run -d -it -e EULA=TRUE -p 19132:19132/udp itzg/minecraft-bedrock-server
+git clone https://github.com/patrickkempff/docker-minecraft-bedrock-server-arm64.git
+cd docker-minecraft-bedrock-server-arm64
+docker build --tag minecraft .
+```
+
+```bash
+docker run -d -it -e EULA=TRUE -p 19132:19132/udp minecraft
 ```
 
 > **NOTE**: if you plan on running a server for a longer amount of time it is highly recommended using a management layer such as [Docker Compose](#deploying-with-docker-compose) or [Kubernetes](#deploying-with-kubernetes) to allow for incremental reconfiguration and image upgrades.
